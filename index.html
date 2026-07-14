@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coursera Assistant Pro</title>
+  <meta name="description" content="Coursera Assistant Pro is a Chrome extension that helps learners work with quizzes, discussions, readings, transcripts, and AI-assisted course tasks.">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111827;
+      --panel-2: #172033;
+      --text: #f8fafc;
+      --muted: #a8b3c7;
+      --line: #2b364f;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --yellow: #facc15;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, .26), transparent 34%),
+        radial-gradient(circle at 90% 12%, rgba(34, 197, 94, .18), transparent 32%),
+        var(--bg);
+      font: 16px/1.6 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+    }
+
+    .logo {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #0ea5e9);
+      color: var(--white);
+      font-size: 22px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    nav a {
+      text-decoration: none;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+      align-items: center;
+      gap: 44px;
+      padding: 54px 0 34px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      padding: 6px 10px;
+      border: 1px solid rgba(250, 204, 21, .45);
+      border-radius: 999px;
+      color: #fde68a;
+      background: rgba(250, 204, 21, .08);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(38px, 6vw, 68px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 640px;
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 19px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(255, 255, 255, .04);
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    .button.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: var(--white);
+    }
+
+    .button.success {
+      border-color: var(--green);
+      background: var(--green);
+      color: #03120a;
+    }
+
+    .button.disabled {
+      cursor: not-allowed;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .03);
+    }
+
+    .mockup {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+      overflow: hidden;
+    }
+
+    .mockup-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(17, 24, 39, .72);
+      font-weight: 800;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, .16);
+      color: #86efac;
+      font-size: 12px;
+    }
+
+    .mockup-body { padding: 16px; }
+
+    .tool-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .tool {
+      min-height: 86px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, .88);
+    }
+
+    .tool strong { display: block; margin-bottom: 4px; }
+    .tool span { color: var(--muted); font-size: 13px; }
+
+    .section {
+      padding: 48px 0;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .section-intro {
+      max-width: 720px;
+      margin: 0 0 24px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 24, 39, .76);
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .card p,
+    .card li {
+      color: var(--muted);
+    }
+
+    .card p { margin: 0; }
+
+    .plans {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .plan {
+      position: relative;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 24, 39, .82);
+    }
+
+    .plan.pro {
+      border-color: rgba(34, 197, 94, .58);
+      background: linear-gradient(180deg, rgba(34, 197, 94, .12), rgba(17, 24, 39, .88));
+    }
+
+    .price {
+      margin: 10px 0 16px;
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    ul {
+      margin: 14px 0 0;
+      padding-left: 20px;
+    }
+
+    li + li { margin-top: 7px; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .step-num {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 10px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: var(--white);
+      font-weight: 900;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(250, 204, 21, .34);
+      border-radius: 8px;
+      color: #fde68a;
+      background: rgba(250, 204, 21, .08);
+    }
+
+    footer {
+      margin-top: 36px;
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    footer .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 860px) {
+      header,
+      nav {
+        align-items: flex-start;
+      }
+
+      header,
+      .hero,
+      .plans {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        display: grid;
+      }
+
+      .grid,
+      .steps {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { width: min(100% - 24px, 1120px); }
+      nav { display: none; }
+      .hero { padding-top: 26px; }
+      .grid,
+      .steps,
+      .tool-row {
+        grid-template-columns: 1fr;
+      }
+      .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">Q</div>
+        <span>Coursera Assistant Pro</span>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#activation">Activation</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Chrome extension for AI-assisted course work</p>
+          <h1>Coursera Assistant Pro</h1>
+          <p class="lead">A Chrome side-panel assistant for course pages. It helps with quiz drafts, discussion replies, reading extraction, transcript collection, and study chat while keeping the learner in control.</p>
+          <div class="actions">
+            <span class="button disabled" aria-disabled="true">Chrome Web Store coming soon</span>
+            <a class="button success" href="https://test.checkout.dodopayments.com/buy/pdt_0NjC7pBJWvvfro17zm915?quantity=1">Buy Pro</a>
+          </div>
+          <p class="note">Dodo checkout is currently in test mode while live payment verification is under review.</p>
+        </div>
+
+        <aside class="mockup" aria-label="Product preview">
+          <div class="mockup-head">
+            <span>Assistant Panel</span>
+            <span class="badge">Trial / Pro</span>
+          </div>
+          <div class="mockup-body">
+            <div class="tool-row">
+              <div class="tool"><strong>Quiz Solver</strong><span>Scan questions and prepare AI-assisted answers for review.</span></div>
+              <div class="tool"><strong>Discussions</strong><span>Draft replies and peer feedback from course context.</span></div>
+            </div>
+            <div class="tool-row">
+              <div class="tool"><strong>Transcripts</strong><span>Extract lecture transcripts for study notes.</span></div>
+              <div class="tool"><strong>Readings</strong><span>Collect readable course material for export.</span></div>
+            </div>
+            <div class="tool"><strong>Study Chat</strong><span>Ask questions using saved transcripts and reading material as context.</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="features">
+        <h2>What it helps with</h2>
+        <p class="section-intro">Coursera Assistant Pro is built for students and learners who want a faster way to prepare drafts, organize course material, and review AI output before submitting work.</p>
+        <div class="grid">
+          <div class="card">
+            <h3>Quiz assistance</h3>
+            <p>Detect quiz questions, generate answers, and review explanations before applying them.</p>
+          </div>
+          <div class="card">
+            <h3>Discussion drafts</h3>
+            <p>Create discussion replies and peer review feedback from page context and your own notes.</p>
+          </div>
+          <div class="card">
+            <h3>Course material tools</h3>
+            <p>Extract transcripts and reading content so your study material is easier to copy, export, and summarize.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="pricing">
+        <h2>Trial and Pro</h2>
+        <p class="section-intro">Install once. The same extension runs in trial mode first and unlocks Pro features after activation.</p>
+        <div class="plans">
+          <div class="plan">
+            <h3>Trial</h3>
+            <div class="price">$0</div>
+            <ul>
+              <li>Default AI access</li>
+              <li>Limited daily transcript extraction</li>
+              <li>Limited daily reading extraction</li>
+              <li>Limited quiz solving</li>
+              <li>Discussion preview access</li>
+            </ul>
+          </div>
+          <div class="plan pro">
+            <h3>Pro</h3>
+            <div class="price">$9.99</div>
+            <ul>
+              <li>Unlock Pro actions</li>
+              <li>Higher usage limits</li>
+              <li>Bulk transcript and reading workflows</li>
+              <li>Bulk quiz and discussion draft workflows</li>
+              <li>Future Pro updates included according to the terms</li>
+            </ul>
+            <div class="actions">
+              <a class="button success" href="https://test.checkout.dodopayments.com/buy/pdt_0NjC7pBJWvvfro17zm915?quantity=1">Buy Pro</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="activation">
+        <h2>How Pro activation works</h2>
+        <div class="steps">
+          <div class="card">
+            <div class="step-num">1</div>
+            <h3>Install</h3>
+            <p>Install the extension from the Chrome Web Store.</p>
+          </div>
+          <div class="card">
+            <div class="step-num">2</div>
+            <h3>Buy Pro</h3>
+            <p>Use the Buy Pro button and complete payment through Dodo checkout.</p>
+          </div>
+          <div class="card">
+            <div class="step-num">3</div>
+            <h3>Receive license</h3>
+            <p>Dodo provides a license key after successful payment.</p>
+          </div>
+          <div class="card">
+            <div class="step-num">4</div>
+            <h3>Activate</h3>
+            <p>Enter the license key inside the extension to unlock Pro access.</p>
+          </div>
+        </div>
+        <p class="note">AI can make mistakes. Always review answers, drafts, and generated text before submitting course work.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div>Coursera Assistant Pro. Developed by Kapil Rijal.</div>
+      <div>Contact: <a href="mailto:zen.z.neur@gmail.com">zen.z.neur@gmail.com</a></div>
+      <div class="links">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms</a>
+        <a href="refund.html">Refund Policy</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
