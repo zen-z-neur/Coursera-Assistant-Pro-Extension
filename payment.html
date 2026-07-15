@@ -306,7 +306,7 @@
           <article class="option" id="nepal">
             <h2>Nepal</h2>
             <p>Pay securely through eSewa ePay.</p>
-            <div class="price">NPR 1,333</div>
+            <div class="price" id="esewa-price">NPR 1,000</div>
             <div class="meta">Equivalent Pro license for Nepal customers.</div>
             <label for="esewa-email">License email</label>
             <input id="esewa-email" type="email" autocomplete="email" placeholder="you@example.com">
@@ -320,12 +320,13 @@
           <article class="option" id="international">
             <h2>International</h2>
             <p>Pay outside Nepal through hosted checkout.</p>
-            <div class="price">$9.99</div>
+            <div class="price" id="dodo-price">$6.99</div>
             <div class="meta">Cards and supported international payment methods.</div>
             <div class="actions">
-              <a class="button success" href="https://test.checkout.dodopayments.com/buy/pdt_0NjC7pBJWvvfro17zm915?quantity=1">International checkout</a>
+              <a class="button success" id="dodo-checkout-link" href="https://test.checkout.dodopayments.com/buy/pdt_0NjC7pBJWvvfro17zm915?quantity=1">International checkout</a>
             </div>
-            <div class="meta">Dodo checkout is currently in test mode while live payment verification is under review.</div>
+            <div class="meta">After Dodo confirms payment, your license can be downloaded from the success page.</div>
+            <div class="meta" id="dodo-mode-note">Dodo checkout is currently in test mode while live payment verification is under review.</div>
           </article>
         </section>
 
@@ -337,7 +338,7 @@
             <li>Bulk transcript, reading, quiz, and discussion workflows</li>
             <li>Future Pro updates according to the terms</li>
           </ul>
-          <p class="note">After payment, paste your license key inside the extension settings. eSewa payments are verified with a signed server callback before fulfillment. Update <code>config/release-flags.js</code> after your hosted landing page is live.</p>
+          <p class="note">After payment, paste your license key inside the extension settings. eSewa verification and Dodo webhooks both issue the license through the server and email it through Resend.</p>
         </aside>
       </div>
     </main>
@@ -350,6 +351,40 @@
   <script src="payment-config.js"></script>
   <script>
     window.CA_PAYMENT_API_BASE = window.CA_PAYMENT_API_BASE || '';
+    window.CA_DODO_MODE = String(window.CA_DODO_MODE || 'test').toLowerCase() === 'live' ? 'live' : 'test';
+
+    function formatPublicPrice(currency, value) {
+      const amount = Number(value);
+      if (!Number.isFinite(amount) || amount <= 0) return '';
+      if (currency === 'NPR') return `NPR ${amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+      if (currency === 'USD') return `$${amount.toFixed(2)}`;
+      return `${currency} ${amount.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+    }
+
+    function configurePublicPrices() {
+      const esewaPrice = document.getElementById('esewa-price');
+      const dodoPrice = document.getElementById('dodo-price');
+      const npr = formatPublicPrice('NPR', window.CA_PRICE_NPR || 1000);
+      const usd = formatPublicPrice('USD', window.CA_PRICE_USD || 6.99);
+      if (esewaPrice && npr) esewaPrice.textContent = npr;
+      if (dodoPrice && usd) dodoPrice.textContent = usd;
+    }
+
+    async function loadPublicConfig() {
+      if (!window.CA_PAYMENT_API_BASE) return;
+      try {
+        const response = await fetch(`${window.CA_PAYMENT_API_BASE}/api/config/public`, { cache: 'no-store' });
+        const config = await response.json();
+        if (!response.ok || !config.ok) return;
+        if (Number(config.priceNpr) > 0) window.CA_PRICE_NPR = Number(config.priceNpr);
+        if (Number(config.priceUsd) > 0) window.CA_PRICE_USD = Number(config.priceUsd);
+        if (config.dodoMode) window.CA_DODO_MODE = String(config.dodoMode).toLowerCase() === 'live' ? 'live' : 'test';
+        if (config.dodoCheckoutUrl) {
+          if (window.CA_DODO_MODE === 'live') window.CA_DODO_LIVE_CHECKOUT_URL = config.dodoCheckoutUrl;
+          else window.CA_DODO_TEST_CHECKOUT_URL = config.dodoCheckoutUrl;
+        }
+      } catch (error) {}
+    }
 
     function showEsewaError(message) {
       const errorBox = document.getElementById('esewa-error');
@@ -371,6 +406,33 @@
       document.body.appendChild(form);
       form.submit();
     }
+
+    function configureDodoCheckout() {
+      const link = document.getElementById('dodo-checkout-link');
+      const note = document.getElementById('dodo-mode-note');
+      const testUrl = String(window.CA_DODO_TEST_CHECKOUT_URL || '').trim();
+      const liveUrl = String(window.CA_DODO_LIVE_CHECKOUT_URL || '').trim();
+      const targetUrl = window.CA_DODO_MODE === 'live' ? liveUrl : testUrl;
+      if (targetUrl) {
+        link.href = targetUrl;
+      } else {
+        link.removeAttribute('href');
+        link.setAttribute('aria-disabled', 'true');
+        link.textContent = 'International checkout unavailable';
+      }
+      if (note) {
+        note.textContent = window.CA_DODO_MODE === 'live'
+          ? 'Dodo checkout is in live mode. Your license is issued after the live payment webhook confirms payment.'
+          : 'Dodo checkout is in test mode. Your license is issued after the test payment webhook confirms payment.';
+      }
+    }
+
+    configurePublicPrices();
+    configureDodoCheckout();
+    loadPublicConfig().then(() => {
+      configurePublicPrices();
+      configureDodoCheckout();
+    });
 
     document.getElementById('pay-esewa').addEventListener('click', async () => {
       const button = document.getElementById('pay-esewa');

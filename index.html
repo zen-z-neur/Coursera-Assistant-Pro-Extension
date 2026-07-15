@@ -448,7 +448,7 @@
           </div>
           <div class="plan pro">
             <h3>Pro</h3>
-            <div class="price">$9.99</div>
+            <div class="price" id="home-pro-price">$6.99</div>
             <ul>
               <li>Unlock Pro actions</li>
               <li>Higher usage limits</li>
@@ -502,5 +502,27 @@
       </div>
     </footer>
   </div>
+  <script src="payment-config.js"></script>
+  <script>
+    function renderHomePrice() {
+      const homePrice = document.getElementById('home-pro-price');
+      const homeUsd = Number(window.CA_PRICE_USD || 6.99);
+      if (homePrice && Number.isFinite(homeUsd) && homeUsd > 0) {
+        homePrice.textContent = `$${homeUsd.toFixed(2)}`;
+      }
+    }
+    renderHomePrice();
+    if (window.CA_PAYMENT_API_BASE) {
+      fetch(`${window.CA_PAYMENT_API_BASE}/api/config/public`, { cache: 'no-store' })
+        .then(response => response.json())
+        .then(config => {
+          if (config && config.ok && Number(config.priceUsd) > 0) {
+            window.CA_PRICE_USD = Number(config.priceUsd);
+            renderHomePrice();
+          }
+        })
+        .catch(() => {});
+    }
+  </script>
 </body>
 </html>
