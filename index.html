@@ -59,9 +59,16 @@
       width: 42px;
       height: 42px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #2563eb, #0ea5e9);
-      color: var(--white);
-      font-size: 22px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, .08);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .24);
+    }
+
+    .logo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     nav {
@@ -144,6 +151,12 @@
       border-color: var(--green);
       background: var(--green);
       color: #03120a;
+    }
+
+    .button.esewa {
+      border-color: #60bb46;
+      background: #60bb46;
+      color: #061407;
     }
 
     .button.disabled {
@@ -354,7 +367,9 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo" aria-hidden="true">Q</div>
+        <div class="logo" aria-hidden="true">
+          <img src="icon128.png" alt="">
+        </div>
         <span>Coursera Assistant Pro</span>
       </div>
       <nav aria-label="Main navigation">
@@ -373,9 +388,9 @@
           <p class="lead">A Chrome side-panel assistant for course pages. It helps with quiz drafts, discussion replies, reading extraction, transcript collection, and study chat while keeping the learner in control.</p>
           <div class="actions">
             <span class="button disabled" aria-disabled="true">Chrome Web Store coming soon</span>
-            <a class="button success" href="https://test.checkout.dodopayments.com/buy/pdt_0NjC7pBJWvvfro17zm915?quantity=1">Buy Pro</a>
+            <a class="button success" href="payment.html">Buy Pro</a>
           </div>
-          <p class="note">Dodo checkout is currently in test mode while live payment verification is under review.</p>
+          <p class="note">Choose eSewa for Nepal payments or international checkout for cards and supported global methods.</p>
         </div>
 
         <aside class="mockup" aria-label="Product preview">
@@ -442,7 +457,8 @@
               <li>Future Pro updates included according to the terms</li>
             </ul>
             <div class="actions">
-              <a class="button success" href="https://test.checkout.dodopayments.com/buy/pdt_0NjC7pBJWvvfro17zm915?quantity=1">Buy Pro</a>
+              <a class="button esewa" href="payment.html#nepal">Pay with eSewa</a>
+              <a class="button success" href="payment.html#international">International checkout</a>
             </div>
           </div>
         </div>
@@ -459,12 +475,12 @@
           <div class="card">
             <div class="step-num">2</div>
             <h3>Buy Pro</h3>
-            <p>Use the Buy Pro button and complete payment through Dodo checkout.</p>
+            <p>Use eSewa in Nepal or international checkout outside Nepal.</p>
           </div>
           <div class="card">
             <div class="step-num">3</div>
             <h3>Receive license</h3>
-            <p>Dodo provides a license key after successful payment.</p>
+            <p>A Pro license key is provided after successful payment.</p>
           </div>
           <div class="card">
             <div class="step-num">4</div>

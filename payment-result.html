@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Result | Coursera Assistant Pro</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111827;
+      --text: #f8fafc;
+      --muted: #a8b3c7;
+      --line: #2b364f;
+      --green: #22c55e;
+      --red: #fb7185;
+      --blue: #3b82f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      margin: 0;
+      place-items: center;
+      color: var(--text);
+      background: var(--bg);
+      font: 16px/1.6 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    main {
+      width: min(720px, calc(100% - 32px));
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 24, 39, .9);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    p { color: var(--muted); }
+
+    .ok { color: #86efac; }
+    .bad { color: #fecdd3; }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      margin-top: 18px;
+      padding: 0 16px;
+      border: 1px solid var(--blue);
+      border-radius: 8px;
+      color: #fff;
+      background: var(--blue);
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    code {
+      color: var(--text);
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="title">Checking payment...</h1>
+    <p id="message">Please wait while the signed eSewa response is verified.</p>
+    <p id="details"></p>
+    <a class="button" href="payment.html">Back to payment options</a>
+  </main>
+
+  <script src="payment-config.js"></script>
+  <script>
+    window.CA_PAYMENT_API_BASE = window.CA_PAYMENT_API_BASE || '';
+
+    function setResult(kind, title, message, details) {
+      document.getElementById('title').className = kind;
+      document.getElementById('title').textContent = title;
+      document.getElementById('message').textContent = message;
+      document.getElementById('details').innerHTML = details || '';
+    }
+
+    async function verifyEsewa() {
+      const params = new URLSearchParams(location.search);
+      const rawData = params.get('data');
+      if (params.get('status') === 'failed') {
+        setResult('bad', 'Payment was not completed', 'eSewa returned a failed or pending payment result. You can try again from the payment page.');
+        return;
+      }
+      if (!rawData) {
+        setResult('bad', 'Missing payment response', 'No eSewa response data was found in the return URL.');
+        return;
+      }
+      try {
+        const response = await fetch(`${window.CA_PAYMENT_API_BASE}/api/esewa/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: rawData })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Verification failed.');
+        if (!data.complete) {
+          setResult('bad', 'Payment is not complete', 'The eSewa response was received, but the payment is not complete or its signature could not be verified.');
+          return;
+        }
+        const txn = data.payment && data.payment.transaction_uuid ? data.payment.transaction_uuid : '';
+        setResult('ok', 'Payment verified', 'Your eSewa payment was verified. Your Pro license will be issued to the email used at checkout.', txn ? `Transaction: <code>${txn}</code>` : '');
+      } catch (error) {
+        setResult('bad', 'Could not verify payment', error.message || 'The payment verification service returned an error.');
+      }
+    }
+
+    verifyEsewa();
+  </script>
+</body>
+</html>
