@@ -365,7 +365,7 @@
       const esewaPrice = document.getElementById('esewa-price');
       const dodoPrice = document.getElementById('dodo-price');
       const npr = formatPublicPrice('NPR', window.CA_PRICE_NPR || 1000);
-      const usd = formatPublicPrice('USD', window.CA_PRICE_USD || 6.99);
+      const usd = formatPublicPrice(window.CA_DODO_PRICE_CURRENCY || 'USD', window.CA_PRICE_USD || 6.99);
       if (esewaPrice && npr) esewaPrice.textContent = npr;
       if (dodoPrice && usd) dodoPrice.textContent = usd;
     }
@@ -378,6 +378,10 @@
         if (!response.ok || !config.ok) return;
         if (Number(config.priceNpr) > 0) window.CA_PRICE_NPR = Number(config.priceNpr);
         if (Number(config.priceUsd) > 0) window.CA_PRICE_USD = Number(config.priceUsd);
+        if (config.dodoPrice && Number(config.dodoPrice.amount) >= 0 && config.dodoPrice.currency) {
+          window.CA_PRICE_USD = Number(config.dodoPrice.amount);
+          window.CA_DODO_PRICE_CURRENCY = String(config.dodoPrice.currency).toUpperCase();
+        }
         if (config.dodoMode) window.CA_DODO_MODE = String(config.dodoMode).toLowerCase() === 'live' ? 'live' : 'test';
         if (config.dodoCheckoutUrl) {
           if (window.CA_DODO_MODE === 'live') window.CA_DODO_LIVE_CHECKOUT_URL = config.dodoCheckoutUrl;
@@ -414,7 +418,10 @@
       const liveUrl = String(window.CA_DODO_LIVE_CHECKOUT_URL || '').trim();
       const targetUrl = window.CA_DODO_MODE === 'live' ? liveUrl : testUrl;
       if (targetUrl) {
-        link.href = targetUrl;
+        const checkoutUrl = new URL(targetUrl);
+        const returnUrl = String(window.CA_DODO_RETURN_URL || '').trim();
+        if (returnUrl) checkoutUrl.searchParams.set('redirect_url', returnUrl);
+        link.href = checkoutUrl.toString();
       } else {
         link.removeAttribute('href');
         link.setAttribute('aria-disabled', 'true');
