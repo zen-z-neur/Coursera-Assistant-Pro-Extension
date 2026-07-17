@@ -3,8 +3,8 @@
 window.CA_PAYMENT_API_BASE = 'https://courseraassistantpro.vercel.app';
 
 // Public display prices. Keep these aligned with Dodo product pricing and Vercel env.
-window.CA_PRICE_NPR = 1000;
-window.CA_PRICE_USD = 6.99;
+window.CA_PRICE_NPR = null;
+window.CA_PRICE_USD = null;
 window.CA_DODO_PRICE_CURRENCY = 'USD';
 
 // Dodo checkout can be switched from test to live without changing payment.html.
